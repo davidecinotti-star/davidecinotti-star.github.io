@@ -1,0 +1,40 @@
+name: Translate EPSO exam content
+
+on:
+  push:
+    branches:
+      - translation-work-v493
+    paths:
+      - .github/workflows/translate-v493.yml
+      - tools/translate_v493.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: translation-work-v493
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Translate specialist MCQs and EUFTE dossiers
+        run: python tools/translate_v493.py
+
+      - name: Commit translated dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add translation-output-v493.json translation-report-v493.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Generate Italian-English exam dataset"
+          git push origin HEAD:translation-work-v493
